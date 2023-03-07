@@ -66,7 +66,7 @@ async def get_marker_process(msg):
 
     if (second_time - first_time >= 180):  #Если прошло 180 сек с последнего обновления базы
         first_time = second_time
-        deal_list = await get_deal_list() #dict
+        deal_list = get_deal_list() #dict
     
     #Находим нужную запись
     deal_price = deal_list.get(marker, "⚠️ Неправильно введен маркер товара! ⚠️")
