@@ -42,8 +42,10 @@ def get_deal_list():
     return deal_list
 
 
+
 first_time = time.time() 
 deal_list = get_deal_list()
+
 
 
 # /start
@@ -58,6 +60,8 @@ async def start_process(msg):
 async def tracker_process(msg):
     text = "ВВЕДИТЕ МАРКЕР ТОВАРА 📦"
     await msg.answer(text)
+
+
 
 
 # Обработчик маркера
@@ -82,6 +86,8 @@ async def get_marker_process(msg):
         deal_price = "Произошла ошибка на сервере🫤"
 
     await msg.answer(deal_price)
+
+
 
 
 
