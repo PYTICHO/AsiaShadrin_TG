@@ -15,25 +15,29 @@ dp = Dispatcher(bot)
 
 #Получить словарь из всех сделок
 def get_deal_list():
-    #Get Auth code
-    with open(r"tokens/refresh_token.txt") as f:
-        auth_code = f.readline()
+    try:
+        #Get Auth code
+        with open(r"tokens/refresh_token.txt") as f:
+            auth_code = f.readline()
 
-    #Auth
-    tokens.default_token_manager(
-        client_id=client_id,
-        client_secret=client_secret,
-        subdomain=subdomain,
-        redirect_url=redirect_url,
-        storage=tokens.FileTokensStorage(directory_path=os.path.join(str(Path.cwd()), "tokens")),  # by default FileTokensStorage
-    )
-    tokens.default_token_manager.init(code=auth_code, skip_error=True)
+        #Auth
+        tokens.default_token_manager(
+            client_id=client_id,
+            client_secret=client_secret,
+            subdomain=subdomain,
+            redirect_url=redirect_url,
+            storage=tokens.FileTokensStorage(directory_path=os.path.join(str(Path.cwd()), "tokens")),  # by default FileTokensStorage
+        )
+        tokens.default_token_manager.init(code=auth_code, skip_error=True)
 
 
-    #Get Deal List
-    deal_list = {}
-    for deal in Lead.objects.all():
-        deal_list[deal.name] = deal.price
+        #Get Deal List
+        deal_list = {}
+        for deal in Lead.objects.all():
+            deal_list[deal.name] = deal.price
+    except: 
+        deal_list = "Произошла ошибка на сервере🫤"
+
 
     return deal_list
 
@@ -64,18 +68,24 @@ async def get_marker_process(msg):
     marker = msg.text
     second_time = time.time()
 
-    if (second_time - first_time >= 180):  #Если прошло 180 сек с последнего обновления базы
+
+    #Если прошло 180 сек с последнего обновления базы
+    if (second_time - first_time >= 180):  
         first_time = second_time
-        deal_list = await get_deal_list() #dict
+        deal_list = get_deal_list() #dict
     
-    #Находим нужную запись
-    deal_price = deal_list.get(marker, "⚠️ Неправильно введен маркер товара! ⚠️")
-    
+
+    #Находим нужную запись, если не произошло ошибок
+    if str(type(deal_list)) != "<class 'str'>":
+        deal_price = deal_list.get(marker, "⚠️ Неправильно введен маркер товара! ⚠️")
+    else:
+        deal_price = "Произошла ошибка на сервере🫤"
+
     await msg.answer(deal_price)
 
 
 
-# колбек кнопки "Местонахождение товара"
+# Callback кнопки "Местонахождение товара"
 @dp.callback_query_handler(text="product_location") #text - То, что отправили с кнопкой
 async def product_location(call):
     await tracker_process(call.message)
