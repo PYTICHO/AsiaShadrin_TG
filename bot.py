@@ -4,8 +4,7 @@ from kbs import links_kb
 from amocrm.v2 import tokens
 from amocrm.v2.entity.lead import Lead
 from pathlib import Path
-import time
-import os
+import time, os, asyncio
 
 
 #Время, от которого будем высчитывать, обновлять deal_list или нет (раз в  5 мин = 300 сек)
@@ -77,7 +76,10 @@ async def get_marker_process(msg):
     #Если прошло 240сек с последнего обновления базы
     if (second_time - first_time >= 240):  
         first_time = second_time
-        deal_list = get_deal_list() #dict
+
+        # Создаем асинхронный поток и запускаем в нем    GET_DEAL_LIST
+        loop = asyncio.get_running_loop()
+        deal_list = await loop.run_in_executor(None, get_deal_list)
     
 
     #Находим нужную запись, если не произошло ошибок
