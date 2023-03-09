@@ -77,9 +77,6 @@ async def get_marker_process(msg):
         first_time = second_time
         deal_list = get_deal_list() #dict
     
-    #Находим нужную запись
-    deal_price = deal_list.get(marker, "⚠️ Неправильно введен маркер товара! ⚠️")
-    
 
     #Находим нужную запись, если не произошло ошибок
     if str(type(deal_list)) != "<class 'str'>":
