@@ -34,7 +34,9 @@ def get_deal_list():
         #Get Deal List
         deal_list = {}
         for deal in Lead.objects.all():
-            deal_list[deal.name] = deal.price
+            #добавляем запись   -    Название сделки: Статус сделки
+            deal_list[deal.name] = "🌍" + deal.status.name
+
     except: 
         deal_list = "Произошла ошибка на сервере🫤"
 
