@@ -74,12 +74,17 @@ async def get_marker_process(msg):
     global deal_list, first_time
 
     marker = msg.text
+    #Интервал обновления БД
+    update_deal_list_interval = 600
+
     if len(marker) >= 5:
         second_time = time.time()
+        #Сколько прошло с последнего обновления БД
+        last_deal_list_update = int(second_time - first_time)
 
 
         #Если прошло 600 сек с последнего обновления базы
-        if (second_time - first_time >= 600):  
+        if (last_deal_list_update >= update_deal_list_interval):  
             first_time = second_time
 
             # Создаем асинхронный поток и запускаем в нем    GET_DEAL_LIST
@@ -89,7 +94,7 @@ async def get_marker_process(msg):
 
         #Находим нужную запись, если не произошло ошибок
         if str(type(deal_list)) != "<class 'str'>":
-            deal_status = "⚠️Неправильно введен маркер товара!⚠️\n\nВозможно, вашу запись еще не внесли в базу (около 10мин)"
+            deal_status = f"⚠️Неправильно введен маркер товара!⚠️\n\nВозможно, вашу запись еще не внесли в базу. \nПопробуйте через {update_deal_list_interval - last_deal_list_update} сек"
 
             #Ищем сделку в названии которой есть marker
             for key, value in deal_list.items():
