@@ -3,8 +3,13 @@ from config import TOKEN, client_id, client_secret, subdomain, redirect_url
 from kbs import links_kb
 from amocrm.v2 import tokens
 from amocrm.v2.entity.lead import Lead
+from amocrm.v2.entity.pipeline import Pipeline, Status
 from pathlib import Path
 import time, os, asyncio
+
+from requests.adapters import HTTPAdapter
+
+from amocrm.v2.interaction import _session
 
 
 #Время, от которого будем высчитывать, обновлять deal_list или нет (раз в  5 мин = 300 сек)
@@ -33,9 +38,8 @@ def get_deal_list():
         #Get Deal List
         deal_list = {}
         for deal in Lead.objects.all():
-            #добавляем запись   -    Название сделки: Статус сделки
-            deal_list[deal.name] = "🌍" + deal.status.name
-
+            #добавляем запись   -    Название сделки: сделка
+            deal_list[deal.name] = deal
     except: 
         deal_list = "Произошла ошибка на сервере🫤"
 
@@ -70,25 +74,34 @@ async def get_marker_process(msg):
     global deal_list, first_time
 
     marker = msg.text
-    second_time = time.time()
+    if len(marker) >= 5:
+        second_time = time.time()
 
 
-    #Если прошло 240сек с последнего обновления базы
-    if (second_time - first_time >= 240):  
-        first_time = second_time
+        #Если прошло 600 сек с последнего обновления базы
+        if (second_time - first_time >= 600):  
+            first_time = second_time
 
-        # Создаем асинхронный поток и запускаем в нем    GET_DEAL_LIST
-        loop = asyncio.get_running_loop()
-        deal_list = await loop.run_in_executor(None, get_deal_list)
-    
+            # Создаем асинхронный поток и запускаем в нем    GET_DEAL_LIST
+            loop = asyncio.get_running_loop()
+            deal_list = await loop.run_in_executor(None, get_deal_list)
+        
 
-    #Находим нужную запись, если не произошло ошибок
-    if str(type(deal_list)) != "<class 'str'>":
-        deal_price = deal_list.get(marker, "⚠️ Неправильно введен маркер товара! ⚠️")
+        #Находим нужную запись, если не произошло ошибок
+        if str(type(deal_list)) != "<class 'str'>":
+            deal_status = "⚠️Неправильно введен маркер товара!⚠️"
+
+            #Ищем сделку в названии которой есть marker
+            for key, value in deal_list.items():
+                if key.find(marker) != -1:
+                    deal_status = "🌍" + (value.status.name).upper()
+                    break
+        else:
+            deal_status = "Произошла ошибка на сервере🫤"
     else:
-        deal_price = "Произошла ошибка на сервере🫤"
-
-    await msg.answer(deal_price)
+        deal_status = "⚠️Маркер должен быть больше, чем 4 символа!"
+        
+    await msg.answer(deal_status)
 
 
 
