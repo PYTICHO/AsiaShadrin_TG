@@ -94,7 +94,7 @@ async def get_marker_process(msg):
 
         #Находим нужную запись, если не произошло ошибок
         if str(type(deal_list)) != "<class 'str'>":
-            deal_status = f"⚠️Неправильно введен маркер товара!⚠️\n\nВозможно, вашу запись еще не внесли в базу. \nПопробуйте через {update_deal_list_interval - last_deal_list_update} сек"
+            deal_status = f"⚠️Неправильно введен маркер товара!\n\nВозможно, вашу запись еще не внесли в базу. \nПопробуйте через {update_deal_list_interval - last_deal_list_update} сек"
 
             #Ищем сделку в названии которой есть marker
             for key, value in deal_list.items():
