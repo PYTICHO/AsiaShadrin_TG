@@ -8,9 +8,8 @@ from pathlib import Path
 import time, os, asyncio
 
 from requests.adapters import HTTPAdapter
-
 from amocrm.v2.interaction import _session
-
+_session.mount("https://", HTTPAdapter(max_retries=5))
 
 #Время, от которого будем высчитывать, обновлять deal_list или нет (раз в  5 мин = 300 сек)
 bot = Bot(TOKEN)
@@ -19,29 +18,35 @@ dp = Dispatcher(bot)
 
 #Получить словарь из всех сделок
 def get_deal_list():
-    try:
-        #Get Auth code
-        with open(r"tokens/refresh_token.txt") as f:
-            auth_code = f.readline()
+    for i in range(3):
+        try:
+            #Get Auth code
+            with open(r"tokens/refresh_token.txt") as f:
+                auth_code = f.readline()
 
-        #Auth
-        tokens.default_token_manager(
-            client_id=client_id,
-            client_secret=client_secret,
-            subdomain=subdomain,
-            redirect_url=redirect_url,
-            storage=tokens.FileTokensStorage(directory_path=os.path.join(str(Path.cwd()), "tokens")),  # by default FileTokensStorage
-        )
-        tokens.default_token_manager.init(code=auth_code, skip_error=True)
+            #Auth
+            tokens.default_token_manager(
+                client_id=client_id,
+                client_secret=client_secret,
+                subdomain=subdomain,
+                redirect_url=redirect_url,
+                storage=tokens.FileTokensStorage(directory_path=os.path.join(str(Path.cwd()), "tokens")),  # by default FileTokensStorage
+            )
+            tokens.default_token_manager.init(code=auth_code, skip_error=True)
 
 
-        #Get Deal List
-        deal_list = {}
-        for deal in Lead.objects.all():
-            #добавляем запись   -    Название сделки: сделка
-            deal_list[deal.name] = deal
-    except: 
-        deal_list = "Произошла ошибка на сервере🫤"
+            #Get Deal List
+            deal_list = {}
+            for deal in Lead.objects.all():
+                #добавляем запись   -    Название сделки: сделка
+                deal_list[deal.name] = deal
+
+            break
+
+        except Exception as e: 
+            deal_list = "Произошла ошибка на сервере🫤" + str(e)
+            continue
+        
 
 
     return deal_list
@@ -98,7 +103,7 @@ async def get_marker_process(msg):
                     deal_status = "🌍" + (value.status.name).upper()
                     break
         else:
-            deal_status = "Произошла ошибка на сервере🫤"
+            deal_status = deal_list
     else:
         deal_status = "⚠️Маркер должен быть больше, чем 4 символа!"
 
